@@ -79,8 +79,9 @@ jobs:
                       public void onPurchaseResponse(PurchaseResponse response) {
                           if (response.getRequestStatus() == PurchaseResponse.RequestStatus.SUCCESSFUL) {
                               String sku = response.getReceipt().getSku();
-                              PurchasingService.notifyFulfillment(response.getReceipt().getReceiptId(), FulfillmentResult.FULFILLED);
-                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript("window.onNativePurchaseSuccess('" + sku + "');", null));
+                              String receiptId = response.getReceipt().getReceiptId();
+                              PurchasingService.notifyFulfillment(receiptId, FulfillmentResult.FULFILLED);
+                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript("window.onNativeAmazonPurchase('" + sku + "', '" + receiptId + "');", null));
                           }
                       }
 
@@ -89,10 +90,12 @@ jobs:
                   });
 
                   Set<String> skus = new HashSet<>();
-                  skus.add("coins_1000");
-                  skus.add("coins_5000");
-                  skus.add("coins_25000");
-                  skus.add("remove_ads");
+                  skus.add("chips_pack_starter");
+                  skus.add("chips_pack_bronze");
+                  skus.add("chips_pack_popular");
+                  skus.add("chips_pack_value");
+                  skus.add("chips_pack_vip");
+                  skus.add("chips_pack_emperor");
                   PurchasingService.getProductData(skus);
 
                   bridge.getWebView().addJavascriptInterface(new Object() {
@@ -115,7 +118,7 @@ jobs:
                                       @Override
                                       public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
                                           if (state == UnityAds.UnityAdsShowCompletionState.COMPLETED) {
-                                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript("window.onNativeAdRewarded();", null));
+                                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript("window.onNativeUnityAdComplete();", null));
                                           }
                                           loadRewardedAd();
                                       }
