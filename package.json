@@ -7,13 +7,12 @@
     "build": "echo 'Ready'"
   },
   "dependencies": {
-    "@capacitor/android": "^6.0.0",
-    "@capacitor/app": "^6.0.0",
-    "@capacitor/core": "^6.0.0",
-    "@capacitor-community/unity-ads": "^6.0.0",
-    "cordova-plugin-inapppurchase": "^1.2.0"
+    "@capacitor/android": "6.1.2",
+    "@capacitor/app": "6.0.1",
+    "@capacitor/core": "6.1.2",
+    "@capacitor-community/unity-ads": "6.0.0"
   },
   "devDependencies": {
-    "@capacitor/cli": "^6.0.0"
+    "@capacitor/cli": "6.1.2"
   }
 }
