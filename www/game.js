@@ -1189,5 +1189,45 @@ checkDailyStreak();
 if(save.adCooldownUntil&&save.adCooldownUntil>Date.now()){
   UnityAdsEngine.applyButtonCooldown();
 }
+/* Native Android Bridge Connector for Unity Ads & Amazon IAP */
+window.onNativeUnityAdComplete = function() {
+  UnityAdsEngine.onAdCompleted();
+};
 
+window.onNativeAmazonPurchase = function(sku, receiptId) {
+  if (receiptId && save.processedReceipts.includes(receiptId)) return;
+  if (receiptId) { save.processedReceipts.push(receiptId); persist(); }
+  const pack = PACKS.find(p => p.sku === sku) || PACKS[0];
+  creditDirect(pack.chips);
+  $('#storeM').hidden = true;
+  toast(`Payment Verified: +${fmt(pack.chips)} Chips Credited!`);
+  buildLobby(!S.started);
+};
+
+UnityAdsEngine.startAdReward = function() {
+  if (this.isShowing) return;
+  const now = Date.now();
+  if (save.adCooldownUntil && save.adCooldownUntil > now) {
+    const remSec = Math.ceil((save.adCooldownUntil - now) / 1000);
+    toast(`⏳ Next ad ready in ${Math.ceil(remSec / 60)}m`);
+    return;
+  }
+  if (window.NativeBridge && window.NativeBridge.showRewardedAd) {
+    toast('Loading Unity Rewarded Video...');
+    window.NativeBridge.showRewardedAd();
+  } else {
+    toast('Ads available in Amazon Appstore Android build.');
+  }
+};
+
+AmazonIAP.purchase = function(sku) {
+  const pack = PACKS.find(p => p.sku === sku);
+  if (!pack) return;
+  if (window.NativeBridge && window.NativeBridge.purchaseSku) {
+    toast(`Opening Amazon Checkout (${pack.usd})...`);
+    window.NativeBridge.purchaseSku(sku);
+  } else {
+    toast('Amazon Store billing works inside the Amazon Appstore APK.');
+  }
+};
 })();
