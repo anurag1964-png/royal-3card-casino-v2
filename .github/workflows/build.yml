@@ -19,6 +19,7 @@ jobs:
           npx cap sync android
       - name: Inject Native Unity Ads & Amazon IAP SDKs
         run: |
+         sed -i 's/minSdkVersion = 22/minSdkVersion = 24/g' android/variables.gradle
           sed -i 's/versionCode 1/versionCode 20800/g' android/app/build.gradle
           sed -i 's/versionName "1.0"/versionName "2.8"/g' android/app/build.gradle
           sed -i '/dependencies {/a \    implementation "com.unity3d.ads:unity-ads:4.12.2"\n    implementation "com.amazon.device:amazon-appstore-sdk:3.0.4"' android/app/build.gradle
