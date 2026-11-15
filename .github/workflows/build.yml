@@ -1,5 +1,10 @@
 name: Build Release APK
-on: [push, workflow_dispatch]
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,12 +24,13 @@ jobs:
           npx cap sync android
       - name: Inject Native Unity Ads & Amazon IAP SDKs
         run: |
-         sed -i 's/minSdkVersion = 22/minSdkVersion = 24/g' android/variables.gradle
+          sed -i 's/minSdkVersion = 22/minSdkVersion = 24/g' android/variables.gradle
           sed -i 's/versionCode 1/versionCode 20800/g' android/app/build.gradle
           sed -i 's/versionName "1.0"/versionName "2.8"/g' android/app/build.gradle
           sed -i '/dependencies {/a \    implementation "com.unity3d.ads:unity-ads:4.12.2"\n    implementation "com.amazon.device:amazon-appstore-sdk:3.0.4"' android/app/build.gradle
           cat << 'EOF' > android/app/src/main/java/com/playzonestudios/royal3cardcasino3d/MainActivity.java
           package com.playzonestudios.royal3cardcasino3d;
+
           import android.os.Bundle;
           import android.webkit.JavascriptInterface;
           import com.getcapacitor.BridgeActivity;
@@ -32,72 +38,115 @@ jobs:
           import com.unity3d.ads.IUnityAdsLoadListener;
           import com.unity3d.ads.IUnityAdsShowListener;
           import com.unity3d.ads.UnityAds;
+          import com.unity3d.ads.UnityAdsShowOptions;
           import com.amazon.device.iap.PurchasingListener;
           import com.amazon.device.iap.PurchasingService;
-          import com.amazon.device.iap.model.*;
+          import com.amazon.device.iap.model.ProductDataResponse;
+          import com.amazon.device.iap.model.PurchaseResponse;
+          import com.amazon.device.iap.model.PurchaseUpdatesResponse;
+          import com.amazon.device.iap.model.UserDataResponse;
+          import com.amazon.device.iap.model.FulfillmentResult;
           import java.util.HashSet;
           import java.util.Set;
 
           public class MainActivity extends BridgeActivity {
-              private static final String UNITY_GAME_ID = "800438848";
+              private static final String UNITY_GAME_ID = "5789421";
               private static final String PLACEMENT_ID = "Rewarded_Android";
+              private boolean adReady = false;
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
                   super.onCreate(savedInstanceState);
-                  UnityAds.initialize(getApplicationContext(), UNITY_GAME_ID, false, new IUnityAdsInitializationListener() {
-                      @Override public void onInitializationComplete() { UnityAds.load(PLACEMENT_ID, new IUnityAdsLoadListener() { @Override public void onUnityAdsAdLoaded(String p) {} @Override public void onUnityAdsFailedToLoad(String p, UnityAds.UnityAdsLoadError e, String m) {} }); }
-                      @Override public void onInitializationFailed(UnityAds.UnityAdsInitializationError e, String m) {}
+
+                  UnityAds.initialize(this, UNITY_GAME_ID, false, new IUnityAdsInitializationListener() {
+                      @Override
+                      public void onInitializationComplete() {
+                          loadRewardedAd();
+                      }
+
+                      @Override
+                      public void onInitializationFailed(UnityAds.UnityAdsInitializationError error, String message) {}
                   });
 
                   PurchasingService.registerListener(this, new PurchasingListener() {
-                      @Override public void onUserDataResponse(UserDataResponse r) {}
-                      @Override public void onProductDataResponse(ProductDataResponse r) {}
-                      @Override public void onPurchaseResponse(PurchaseResponse r) {
-                          if (r.getRequestStatus() == PurchaseResponse.RequestStatus.SUCCESSFUL) {
-                              Receipt rec = r.getReceipt();
-                              PurchasingService.notifyFulfillment(rec.getReceiptId(), FulfillmentResult.FULFILLED);
-                              final String sku = rec.getSku();
-                              final String rid = rec.getReceiptId();
-                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript(
-                                  "if(window.onNativeAmazonPurchase)window.onNativeAmazonPurchase('" + sku + "','" + rid + "');", null));
+                      @Override
+                      public void onUserDataResponse(UserDataResponse response) {}
+
+                      @Override
+                      public void onProductDataResponse(ProductDataResponse response) {}
+
+                      @Override
+                      public void onPurchaseResponse(PurchaseResponse response) {
+                          if (response.getRequestStatus() == PurchaseResponse.RequestStatus.SUCCESSFUL) {
+                              String sku = response.getReceipt().getSku();
+                              PurchasingService.notifyFulfillment(response.getReceipt().getReceiptId(), FulfillmentResult.FULFILLED);
+                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript("window.onNativePurchaseSuccess('" + sku + "');", null));
                           }
                       }
-                      @Override public void onPurchaseUpdatesResponse(PurchaseUpdatesResponse r) {
-                          for (Receipt rec : r.getReceipts()) {
-                              if (!rec.isCanceled()) {
-                                  PurchasingService.notifyFulfillment(rec.getReceiptId(), FulfillmentResult.FULFILLED);
-                                  final String sku = rec.getSku();
-                                  final String rid = rec.getReceiptId();
-                                  runOnUiThread(() -> bridge.getWebView().evaluateJavascript(
-                                      "if(window.onNativeAmazonPurchase)window.onNativeAmazonPurchase('" + sku + "','" + rid + "');", null));
-                              }
-                          }
-                      }
+
+                      @Override
+                      public void onPurchaseUpdatesResponse(PurchaseUpdatesResponse response) {}
                   });
+
+                  Set<String> skus = new HashSet<>();
+                  skus.add("coins_1000");
+                  skus.add("coins_5000");
+                  skus.add("coins_25000");
+                  skus.add("remove_ads");
+                  PurchasingService.getProductData(skus);
 
                   bridge.getWebView().addJavascriptInterface(new Object() {
                       @JavascriptInterface
                       public void showRewardedAd() {
-                          runOnUiThread(() -> UnityAds.show(MainActivity.this, PLACEMENT_ID, new IUnityAdsShowListener() {
-                              @Override public void onUnityAdsShowFailure(String p, UnityAds.UnityAdsShowError e, String m) {}
-                              @Override public void onUnityAdsShowStart(String p) {}
-                              @Override public void onUnityAdsShowClick(String p) {}
-                              @Override public void onUnityAdsShowComplete(String p, UnityAds.UnityAdsShowCompletionState state) {
-                                  if (state == UnityAds.UnityAdsShowCompletionState.COMPLETED) {
-                                      runOnUiThread(() -> bridge.getWebView().evaluateJavascript("if(window.onNativeUnityAdComplete)window.onNativeUnityAdComplete();", null));
-                                  }
-                                  UnityAds.load(PLACEMENT_ID, new IUnityAdsLoadListener() { @Override public void onUnityAdsAdLoaded(String p) {} @Override public void onUnityAdsFailedToLoad(String p, UnityAds.UnityAdsLoadError e, String m) {} });
+                          runOnUiThread(() -> {
+                              if (adReady) {
+                                  UnityAds.show(MainActivity.this, PLACEMENT_ID, new UnityAdsShowOptions(), new IUnityAdsShowListener() {
+                                      @Override
+                                      public void onUnityAdsShowFailure(String placementId, UnityAds.UnityAdsShowError error, String message) {
+                                          loadRewardedAd();
+                                      }
+
+                                      @Override
+                                      public void onUnityAdsShowStart(String placementId) {}
+
+                                      @Override
+                                      public void onUnityAdsShowClick(String placementId) {}
+
+                                      @Override
+                                      public void onUnityAdsShowComplete(String placementId, UnityAds.UnityAdsShowCompletionState state) {
+                                          if (state == UnityAds.UnityAdsShowCompletionState.COMPLETED) {
+                                              runOnUiThread(() -> bridge.getWebView().evaluateJavascript("window.onNativeAdRewarded();", null));
+                                          }
+                                          loadRewardedAd();
+                                      }
+                                  });
+                              } else {
+                                  loadRewardedAd();
                               }
-                          }));
+                          });
                       }
+
                       @JavascriptInterface
                       public void purchaseSku(String sku) {
                           PurchasingService.purchase(sku);
                       }
                   }, "NativeBridge");
               }
-          }
+
+              private void loadRewardedAd() {
+                  adReady = false;
+                  UnityAds.load(PLACEMENT_ID, new IUnityAdsLoadListener() {
+                      @Override
+                      public void onUnityAdsAdLoaded(String placementId) {
+                          adReady = true;
+                      }
+
+                      @Override
+                      public void onUnityAdsFailedToLoad(String placementId, UnityAds.UnityAdsLoadError error, String message) {
+                          adReady = false;
+                      }
+                  });
+              }
           }
           EOF
       - name: Build Release APK
@@ -109,4 +158,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Royal3CardCasino-v2.8-APK
-          path: android/app/build/outputs/apk/release/*.apk
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
