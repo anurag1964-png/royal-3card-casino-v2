@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+<meta name="theme-color" content="#050d18">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Royal 3-Card Casino 3D</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<noscript><p style="padding:20px;color:#fff">Please enable JavaScript to run this game.</p></noscript>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="sp" viewBox="0 0 100 100"><path d="M50 8C20 34 8 48 8 66c0 14 11 24 24 24 9 0 15-5 18-11 3 6 9 11 18 11 13 0 24-10 24-24C92 48 80 34 50 8Z"/><path d="M50 68Q48 88 36 98h28Q52 88 50 68Z"/></symbol>
+<symbol id="hr" viewBox="0 0 100 100"><path d="M50 90C20 66 8 52 8 34 8 20 19 10 32 10c9 0 15 5 18 11 3-6 9-11 18-11 13 0 24 10 24 24 0 18-12 32-42 56Z"/></symbol>
+<symbol id="dm" viewBox="0 0 100 100"><path d="M50 4 86 50 50 96 14 50Z"/></symbol>
+<symbol id="cl" viewBox="0 0 100 100"><circle cx="50" cy="30" r="22"/><circle cx="27" cy="62" r="22"/><circle cx="73" cy="62" r="22"/><path d="M50 50Q47 80 36 97h28Q53 80 50 50Z"/></symbol>
+<pattern id="bkp" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" style="fill:var(--bk1,#0f2a6b)"/><path d="M0 4 4 0 8 4 4 8Z" style="fill:none;stroke:var(--bk2,#c9a227)" stroke-width=".5"/><circle cx="4" cy="4" r=".9" style="fill:var(--bk2,#c9a227)"/></pattern>
+</defs></svg>
+
+<div id="panViewport">
+  <div id="app">
+    <header class="hdr">
+      <button class="ib" id="hLeave" title="Exit App">✕</button>
+      <button class="ib" id="hLobby" title="Table Rooms">☰</button>
+      <button class="ib" id="hRules" title="Rules">?</button>
+
+      <div class="tinfo" id="tinfo">Table 1 <small>(Ante 10k)</small></div>
+
+      <button class="btn-reward-ad" id="btnRewardHeader" title="Watch Video Ad for 1,00,000 Free Chips">
+        <span class="ad-icon-pulse"></span>
+        <span>▶ 1L FREE CHIPS</span>
+      </button>
+
+      <button class="pill" id="hBuy"><span class="coin"></span><span id="myChipsH">0</span><span class="plus">+</span></button>
+      <button class="ib" id="hSound" title="Mute/Unmute">🔊</button>
+    </header>
+
+    <main id="tableWrap">
+      <div id="scene">
+        <div id="tbl">
+          <div id="rim"></div>
+          <div id="felt"><div id="sweep"></div><div id="spot"></div></div>
+        </div>
+      </div>
+
+      <div id="over">
+        <div id="flash"></div>
+        <div id="upg"></div>
+        <div id="cdn"></div>
+
+        <div id="potBox">
+          <div class="stack"><i></i><i></i><i></i><i></i></div>
+          <div class="potnum">
+            <div class="potlbl">MAIN POT</div>
+            <div id="pot">0</div>
+          </div>
+          <div class="stk" id="stakeLbl">Stake 10,000</div>
+        </div>
+
+        <div id="banner">Waiting for game...</div>
+
+        <div id="seat-0" class="seat me"></div>
+        <div id="seat-1" class="seat bot sl"></div>
+        <div id="seat-2" class="seat bot sl"></div>
+        <div id="seat-3" class="seat bot sr"></div>
+        <div id="seat-4" class="seat bot sr"></div>
+      </div>
+
+      <div id="giftPicker" hidden>
+        <button data-g="🍅" title="Tomato">🍅</button>
+        <button data-g="🌹" title="Rose">🌹</button>
+        <button data-g="🍺" title="Beer">🍺</button>
+        <button data-g="💣" title="Bomb">💣</button>
+        <button data-g="💩" title="Poop">💩</button>
+      </div>
+    </main>
+
+    <footer id="ctrl">
+      <button class="btn" id="bChat" title="Quick Chat">💬</button>
+      <button class="btn" id="bPack" disabled>FOLD</button>
+      <button class="btn" id="bSee" disabled>SEE</button>
+      <button class="btn" id="bSS" disabled>SIDE SHOW</button>
+      <button class="btn" id="bChaal" disabled><span>CALL</span><span class="a">0</span></button>
+      <button class="btn" id="bRaise" disabled><span>RAISE</span><span class="a">0</span></button>
+    </footer>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<!-- 3D Royal Horizontal Lobby Modal -->
+<div class="modal" id="lobby">
+  <div class="sheet lobby-sheet">
+    <div class="lobby-top">
+      <svg class="logo" viewBox="0 0 100 100">
+        <defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff8c4"/><stop offset=".55" stop-color="#f5c542"/><stop offset="1" stop-color="#9a6700"/></linearGradient></defs>
+        <circle cx="50" cy="50" r="44" fill="none" stroke="url(#lg)" stroke-width="5"/>
+        <path d="M50 18 L60 40 L84 40 L65 54 L72 78 L50 63 L28 78 L35 54 L16 40 L40 40 Z" fill="url(#lg)"/>
+      </svg>
+      <div class="lobby-title-wrap">
+        <div class="brand">ROYAL 3-CARD CASINO</div>
+        <p id="lobbySub">Select your royal room to play</p>
+      </div>
+      <div class="lobby-bal-pill" id="lobbyBuyPill">
+        <span class="coin"></span>
+        <span id="lobbyChips">0</span>
+        <span class="plus">+</span>
+      </div>
+    </div>
+
+    <div class="tables-horiz" id="tables"></div>
+
+    <div class="lobby-actions">
+      <button class="btn-3d btn-3d-emerald" id="btnRewardLobby">
+        <span class="ad-icon-pulse"></span>
+        <span>▶ WATCH AD · +1L CHIPS</span>
+      </button>
+      <button class="btn-3d btn-3d-gold" id="lStore">🪙 BUY CHIPS</button>
+      <button class="btn-3d btn-3d-royal" id="lStreak">📅 DAILY BONUS</button>
+      <button class="btn-3d btn-3d-sapphire" id="lRules">📖 RULES</button>
+      <button class="btn-3d btn-3d-teal" id="lClose" hidden>↩ BACK TO TABLE</button>
+      <button class="btn-3d btn-3d-crimson" id="lExit">⏹ EXIT APP</button>
+    </div>
+
+    <div class="disclaimer-box">
+      <b>18+ AMUSEMENT ONLY:</b> Virtual game chips carry zero real-money value and cannot be redeemed or cashed out. Fair RNG card shuffling.
+    </div>
+  </div>
+</div>
+
+<!-- Rules Modal -->
+<div class="modal" id="rulesM" hidden>
+  <div class="sheet">
+    <h2>Game Rules & Rankings</h2>
+    <div class="rules" id="rulesBody"></div>
+    <button class="btn-3d btn-3d-royal" id="rClose" style="margin-top:14px">Close</button>
+  </div>
+</div>
+
+<!-- Out of Chips Modal -->
+<div class="modal" id="brokeM" hidden>
+  <div class="sheet">
+    <div style="font-size:44px">🪙</div>
+    <h2>Out of Chips!</h2>
+    <p>Your chip balance is below table ante.</p>
+    <div style="margin:12px 0;">
+      <button class="btn-3d btn-3d-emerald" id="brokeWatchAd" style="width:100%;max-width:280px;justify-content:center;">
+        <span class="ad-icon-pulse"></span>
+        <span>▶ Watch Video Ad (+1L)</span>
+      </button>
+    </div>
+    <div>
+      <button class="btn-3d btn-3d-gold" id="brokeOffer">Get Starter Pack ($0.99)</button>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn-3d btn-3d-royal" id="brokeBuy">All Packs</button>
+      <button class="btn-3d btn-3d-sapphire" id="brokeClaimFree">Daily Bonus</button>
+      <button class="btn-3d btn-3d-crimson" id="brokeTable">Change Table</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chip Store Modal -->
+<div class="modal" id="storeM" hidden>
+  <div class="sheet">
+    <h2>Royal Chip Store</h2>
+    <p id="storeMsg">Instant chips via Amazon Appstore</p>
+    <div class="packs" id="packs"></div>
+    <button class="btn-3d btn-3d-royal" id="storeClose" style="margin-top:12px">Close</button>
+  </div>
+</div>
+
+<!-- Daily Streak Modal -->
+<div class="modal" id="dailyM" hidden>
+  <div class="sheet">
+    <h2>7-Day Login Streak</h2>
+    <p>Claim daily bonus chips!</p>
+    <div class="streak-grid" id="streakGrid"></div>
+    <button class="btn-3d btn-3d-gold" id="dailyClaim">Claim Reward</button>
+    <button class="btn-3d btn-3d-royal" id="dailyClose" style="margin-left:6px">Close</button>
+  </div>
+</div>
+
+<!-- Side Show Modal -->
+<div class="modal" id="ssM" hidden>
+  <div class="sheet">
+    <h2>Side Show Request</h2>
+    <p id="ssTxt">Player asks for Side Show</p>
+    <div style="margin-top:16px">
+      <button class="btn-3d btn-3d-emerald" id="ssYes">Accept 🤝</button>
+      <button class="btn-3d btn-3d-crimson" id="ssNo" style="margin-left:8px">Decline ✋</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Chat Modal -->
+<div class="modal" id="chatM" hidden>
+  <div class="sheet">
+    <h2>Quick Chat</h2>
+    <div class="chat-grid">
+      <button class="cmsg">Good luck all! 🍀</button>
+      <button class="cmsg">Show me your cards! 👀</button>
+      <button class="cmsg">Nice hand! 👏</button>
+      <button class="cmsg">Going Blind! 🔥</button>
+      <button class="cmsg">I smell a bluff! 🤨</button>
+      <button class="cmsg">Unbelievable! 😱</button>
+    </div>
+    <button class="btn-3d btn-3d-royal" id="chatClose" style="margin-top:12px">Close</button>
+  </div>
+</div>
+
+<script src="players.js"></script>
+<script src="game.js"></script>
+</body>
+</html>

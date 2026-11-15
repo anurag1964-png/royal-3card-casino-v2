@@ -1,0 +1,14 @@
+{
+  "appId": "com.playzonestudios.royal3cardcasino3d",
+  "appName": "Royal 3-Card Casino 3D",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https"
+  },
+  "plugins": {
+    "UnityAds": {
+      "gameId": "800438848",
+      "testMode": false
+    }
+  }
+}
